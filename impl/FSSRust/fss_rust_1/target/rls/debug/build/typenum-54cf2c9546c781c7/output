@@ -1,2 +1,0 @@
-cargo:rustc-env=TYPENUM_BUILD_CONSTS=/home/devanshu/Desktop/projects/pclub_projects/Crypto_summer/git_repo/Obliv-rust/impl/FSSRust/fss_rust_1/target/rls/debug/build/typenum-54cf2c9546c781c7/out/consts.rs
-cargo:rustc-env=TYPENUM_BUILD_OP=/home/devanshu/Desktop/projects/pclub_projects/Crypto_summer/git_repo/Obliv-rust/impl/FSSRust/fss_rust_1/target/rls/debug/build/typenum-54cf2c9546c781c7/out/op.rs
