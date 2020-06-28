@@ -1,18 +1,24 @@
-use aesni::block_cipher::generic_array::{GenericArray, ArrayLength};
-use aesni::block_cipher::generic_array::typenum::{U16};
+use crate::{GenericArray, ArrayLength};
+use crate::{Block, S, Aeskey};
+
 extern crate rand;    
 use rand::os::{OsRng};
-use crate::rand::RngCore;
+use rand::RngCore;
 
-pub type Aeskey = GenericArray<u8,U16>;
-pub type Block = GenericArray<u8, U16>;
-pub type S<N> = GenericArray<Block, N>;
+//group addition and subtraction of size 1<<n
+pub fn grp_add(x: u128, y: u128, n: u8) -> u128{
+    if n < 128 {return (x+y)%(1<<n)};
+    let max = u128::MAX;
+    let z = max-x;
+    if y>z {y-z-1}
+    else {x+y}
+}
 
-// Declaring struct for Fss keys containing s, correction word and W(for evaluation).
-pub struct FssKey<N : ArrayLength<Block>> {
-    pub s : S<N>,
-    pub cw : Vec<(GenericArray<Block, N>, bool, bool)>,
-    pub w : u128
+pub fn grp_sub(x: u128, y: u128, n: u8) -> u128{
+    if n < 128 {return (x+(1<<n)-y)%(1<<n)}
+    let max = u128::MAX;
+    if y <= x {x-y}
+    else {max-y+x}
 }
 
 // Generation of AES Keys for use in prg.
@@ -27,48 +33,44 @@ pub fn gen_key() -> Aeskey {
     return key;
 }
 
-// Function for getting random bytes for initialising s0 and s1.
-pub fn set_random_bytes (lambda: u64) -> Vec<u8> {
-    let x = lambda as usize;
-    let mut rand_bytes = vec![0u8; x];
-    let mut r = OsRng::new().unwrap();
-
-    r.fill_bytes(&mut rand_bytes);
-    return rand_bytes;
-}
-
 // Utility function to get the bit at a certain position of input.
 pub fn get_bit(n : u128, pos : u8) -> bool {
     return n & ( 1 << pos) > 0 
 }
 
-// Function that uses set_random_bytes to set random bytes in form of blocks in s0 and s1.
-pub fn get_random_block <N : ArrayLength<Block>> (s : &mut S<N>, lambda : u64) {
-    let rand_bytes = set_random_bytes(lambda); 
-    let max_block_len = lambda/128;
-    let extra_bits = lambda%128;
-    if extra_bits > 0 {
-        for j in 0..max_block_len {
-            let ind = j as usize;
-            s[ind] = *GenericArray::from_slice(&rand_bytes[ind*16..(ind+1)*16]);
-        }
-        let last = max_block_len as usize;
-        let x = extra_bits/8;
-        let y = extra_bits%8;
-        for i in 0..x {
-            let ind = i as usize;
-            s[last][ind] = rand_bytes[last*8 + ind];
-        }
-        if y > 0 {
-            let mask = 0xffu8 >> y;
-            let ind = x as usize;
-            s[last][ind] = mask;
-        }
+// Function for getting random bytes for initialising s0 and s1.
+fn set_random_bytes (lambda: usize) -> Vec<u8> {
+    let extra_bits = lambda%8;
+    let x = lambda/8 + if extra_bits > 0 {1} else {0};
+    let mut rand_bytes = vec![0u8; x];
+    let mut r = OsRng::new().unwrap();
+
+    r.fill_bytes(&mut rand_bytes);
+
+    if extra_bits>0 {
+        let mask:u8 = ((1<<(extra_bits-1))-1) + 1<<(extra_bits-1);
+        rand_bytes[x-1] &= mask;
     }
-    else {
-        for j in 0..max_block_len {
-            let ind = j as usize;
-            s[ind] = *GenericArray::from_slice(&rand_bytes[ind*16..(ind+1)*16]);
+    return rand_bytes;
+}
+
+// Function that uses set_random_bytes to set random bytes in form of blocks in s0 and s1.
+pub fn get_random_block <N : ArrayLength<Block>> (s : &mut S<N>, lambda : usize) {
+    let mut rand_bytes = set_random_bytes(lambda);
+    while (rand_bytes.len()%16)>0 {
+        rand_bytes.push(0u8);
+    }
+
+    let max_block_len = rand_bytes.len()/16;
+    for i in 0..max_block_len {
+        s[i] = *GenericArray::from_slice(&rand_bytes[(i*16)..(i*16+16)]);
+    }
+}
+
+pub fn seed_xor <N: ArrayLength<Block>>(res: &mut S<N>, operand1: &S<N>, operand2: &S<N>){
+    for i in 0..res.len() as usize {
+        for j in 0..16 {
+            res[i][j] = operand1[i][j] ^ operand2[i][j];
         }
     }
 }

@@ -1,12 +1,11 @@
-use aesni::block_cipher::generic_array::{GenericArray, ArrayLength};
-use aesni::block_cipher::consts::U16;
+use crate::{GenericArray, ArrayLength};
 use aesni::block_cipher::{BlockCipher, NewBlockCipher};
 use aesni::Aes128;
 
 use std::mem;
 use std::thread;
 
-type Block = GenericArray<u8,U16>;
+use crate::Block;
 
 // a PRG generating seed_len*2 + 2 bits random value from seed of length seed_len using AES128.
 pub fn prg<N: ArrayLength<Block>>(aes_keys: &[Block; 3],seed: &GenericArray<Block,N>,seed_len: usize) -> (GenericArray<Block,N>, bool, GenericArray<Block,N>, bool)
@@ -83,16 +82,26 @@ pub fn prg<N: ArrayLength<Block>>(aes_keys: &[Block; 3],seed: &GenericArray<Bloc
     (mem::take(&mut blocks_arr[0]),t1,mem::take(&mut blocks_arr[1]),t2)
 }
 
-pub fn convert <N : ArrayLength<Block>> (s : &mut GenericArray<Block,N>, grp_size : u8) -> u128 {
+pub fn convert <N : ArrayLength<Block>> (s: &mut GenericArray<Block,N>, n: u8) -> u128 {
     let mut rnd_num = 0u128;
+    let mut x=0u128;
+    let mut count = 0u8;
+    let max:u128 = ((1<<(n-1))-1)+(1<<(n-1));
+    let mask = u128::MAX - max;
+    let shift = if n == 128 {0} else {n};
+
     for block in s {
-        let mut x=1u128;
         for y in block {
-            x*= *y as u128;
+            x=x<<8;
+            x+=*y as u128;
+            count+=8;
+            while count >= n {
+                rnd_num ^= x&max;
+                x = (x&mask)>>shift;
+                count-=n;
+            }
         }
-        rnd_num ^= x;
-        println!("rnd_num: {}\nx: {}\n\n",rnd_num,x);
     }
 
-    return rnd_num % grp_size as u128;
+    rnd_num^x
 }
