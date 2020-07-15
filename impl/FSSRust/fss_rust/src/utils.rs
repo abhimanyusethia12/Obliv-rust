@@ -77,10 +77,10 @@ pub fn get_random_block<N: ArrayLength<Block>>(s: &mut S<N>, lambda: usize) {
     }
 }
 
-pub fn seed_xor<N: ArrayLength<Block>>(res: &mut S<N>, operand1: &S<N>, operand2: &S<N>) {
-    for i in 0..res.len() as usize {
-        for j in 0..16 {
-            res[i][j] = operand1[i][j] ^ operand2[i][j];
-        }
-    }
+pub fn seed_xor<N: ArrayLength<Block>>(operand1: &S<N>, operand2: &S<N>) -> S<N> {
+    operand1
+        .iter()
+        .zip(operand2.iter())
+        .map(|(x, y)| x.iter().zip(y.iter()).map(|(a, b)| a ^ b).collect())
+        .collect()
 }

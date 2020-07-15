@@ -43,7 +43,7 @@ impl Eval {
 
             if x_i {
                 if t {
-                    seed_xor(&mut s, &s1, &key.cw[i].0);
+                    s = seed_xor(&s1, &key.cw[i].0);
                     t = t1 ^ key.cw[i].2;
                 } else {
                     s = s1;
@@ -51,7 +51,7 @@ impl Eval {
                 }
             } else {
                 if t {
-                    seed_xor(&mut s, &s0, &key.cw[i].0);
+                    s = seed_xor(&s0, &key.cw[i].0);
                     t = t0 ^ key.cw[i].1;
                 } else {
                     s = s0;

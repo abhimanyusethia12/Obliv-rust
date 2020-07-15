@@ -82,21 +82,20 @@ impl Gen {
                 lose = 0;
             }
 
-            let mut s_cw: S<N> = GenericArray::default();
+            let s_cw = seed_xor(&s0[lose], &s1[lose]);
             let mut t_cw: Vec<bool> = vec![false, false];
-            seed_xor(&mut s_cw, &s0[lose], &s1[lose]);
             t_cw[0] = t0[0] ^ t1[0] ^ alpha ^ true;
             t_cw[1] = t0[1] ^ t1[1] ^ alpha;
 
             if t_0 {
-                seed_xor(&mut s_0, &s0[keep], &s_cw);
+                s_0 = seed_xor(&s0[keep], &s_cw);
                 t_0 = t0[keep] ^ t_cw[keep];
             } else {
                 s_0 = mem::take(&mut s0[keep]);
                 t_0 = t0[keep];
             }
             if t_1 {
-                seed_xor(&mut s_1, &s1[keep], &s_cw);
+                s_1 = seed_xor(&s1[keep], &s_cw);
                 t_1 = t1[keep] ^ t_cw[keep];
             } else {
                 s_1 = mem::take(&mut s1[keep]);
