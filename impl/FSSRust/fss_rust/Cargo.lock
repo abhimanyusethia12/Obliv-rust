@@ -196,7 +196,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fss_rust_1"
+name = "fss_rust"
 version = "0.1.0"
 dependencies = [
  "aesni",

@@ -1,7 +1,8 @@
 use rand::Rng;
 
-use fss_rust_1::{gen, eval, FssKey};
-use fss_rust_1::seed_size::U1;
+use fss_rust::{dpf::{gen, eval}, FssKey};
+
+use fss_rust::seed_size::U1;
 
 #[test]
 fn dpf_test() {

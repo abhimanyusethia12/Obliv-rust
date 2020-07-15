@@ -2,8 +2,8 @@ pub use aesni::block_cipher::generic_array::{GenericArray, ArrayLength};
 pub use aesni::block_cipher::generic_array::typenum as seed_size;
 use seed_size::{U16};
 
-pub mod gen;
-pub mod eval;
+pub mod dpf;
+pub mod dif;
 mod prg;
 mod utils;
 

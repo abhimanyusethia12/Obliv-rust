@@ -1,9 +1,6 @@
 extern crate rand;    
 
-use fss_rust_1::gen;
-use fss_rust_1::eval;
-use fss_rust_1::FssKey;
-use fss_rust_1::seed_size::U1;
+use fss_rust::{dpf::{gen, eval}, FssKey, seed_size::U1};
 
 fn main() {
     let sec_param = 128;
