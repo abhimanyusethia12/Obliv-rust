@@ -1,36 +1,41 @@
-use crate::{ArrayLength};
 use crate::prg;
-use crate::utils::{get_bit, grp_sub, grp_add, seed_xor};
+use crate::utils::{get_bit, grp_add, grp_sub, seed_xor};
+use crate::ArrayLength;
 use crate::FssKey;
 
 use crate::{Aeskey, Block, S};
 
 #[derive(Debug)]
-pub struct Eval{
-    aes_keys : [Aeskey; 3],
-    num_bits : u8,
+pub struct Eval {
+    aes_keys: [Aeskey; 3],
+    num_bits: u8,
 }
 
-impl Eval{
+impl Eval {
     pub fn new(num_bits: u8, aes_keys: &[Aeskey; 3]) -> Eval {
         Eval {
             aes_keys: *aes_keys,
-            num_bits : num_bits,
+            num_bits: num_bits,
         }
     }
-    pub fn eval<N: ArrayLength<Block>>(&self,b: u8, key:&FssKey<N>, x: u128 , sec_param : usize) -> u128{
-
-        let mut t = match b{
+    pub fn eval<N: ArrayLength<Block>>(
+        &self,
+        b: u8,
+        key: &FssKey<N>,
+        x: u128,
+        sec_param: usize,
+    ) -> u128 {
+        let mut t = match b {
             0 => false,
             1 => true,
-            _ => panic!("It is two party scheme. Party number can only be 1 or 2")
+            _ => panic!("It is two party scheme. Party number can only be 1 or 2"),
         };
 
         let n = self.num_bits;
         let lambda = sec_param;
-        
+
         let mut s: S<N> = key.s.clone();
-    
+
         for i in 0..n as usize {
             let (s0, t0, s1, t1) = prg::prg(&self.aes_keys, &s, lambda);
 
@@ -44,7 +49,7 @@ impl Eval{
                     s = s1;
                     t = t1;
                 }
-            }else {
+            } else {
                 if t {
                     seed_xor(&mut s, &s0, &key.cw[i].0);
                     t = t0 ^ key.cw[i].1;
@@ -55,13 +60,11 @@ impl Eval{
             };
         }
 
-        let share = grp_add(prg::convert::<N>(&mut s, n),(t as u128)*key.w,n);
+        let share = grp_add(prg::convert::<N>(&mut s, n), (t as u128) * key.w, n);
         if b != 0 {
             grp_sub(0u128, share, n)
-        }else{
+        } else {
             share
         }
-        
     }
-
 }

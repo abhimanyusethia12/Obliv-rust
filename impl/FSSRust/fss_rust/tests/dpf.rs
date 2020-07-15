@@ -1,16 +1,19 @@
 use rand::Rng;
 
-use fss_rust::{dpf::{gen, eval}, FssKey};
+use fss_rust::{
+    dpf::{eval, gen},
+    FssKey,
+};
 
 use fss_rust::seed_size::U1;
 
 #[test]
 fn dpf_test() {
-    let rnd_128 = ||{
+    let rnd_128 = || {
         let mut rng = rand::thread_rng();
         let x = rng.gen::<u8>() as u128;
         let y = rng.gen::<u8>() as u128;
-        (x<<8) + y
+        (x << 8) + y
     };
     let sec_param = 128;
     let num_bit = 20;
@@ -18,8 +21,7 @@ fn dpf_test() {
     for _i in 0..1000 {
         let a = rnd_128();
         let b = rnd_128();
-        
-        
+
         // Initialising the Gen object.
         let obj: gen::Gen = gen::Gen::new(num_bit, a, b);
         let mut key1 = FssKey::<U1>::new();
@@ -36,8 +38,8 @@ fn dpf_test() {
         let mut x = a;
         let mut share1 = eval_obj.eval(0, key1, x, sec_param);
         let mut share2 = eval_obj.eval(1, key2, x, sec_param);
-        let mut ans = (share1+share2)%(1<<num_bit);
-        assert_eq!(b,ans);
+        let mut ans = (share1 + share2) % (1 << num_bit);
+        assert_eq!(b, ans);
 
         //test- eval at 99 random values is equal to 0
         for _j in 0..99 {
@@ -45,8 +47,8 @@ fn dpf_test() {
             if x != a {
                 share1 = eval_obj.eval(0, key1, x, sec_param);
                 share2 = eval_obj.eval(1, key2, x, sec_param);
-                ans = (share1+share2)%(1<<num_bit);
-                assert_eq!(0,ans);
+                ans = (share1 + share2) % (1 << num_bit);
+                assert_eq!(0, ans);
             }
         }
     }
