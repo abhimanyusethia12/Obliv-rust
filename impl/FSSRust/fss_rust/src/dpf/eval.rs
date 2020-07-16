@@ -1,7 +1,7 @@
-use crate::prg;
+use super::{prg, FssKey};
+
 use crate::utils::{get_bit, grp_add, grp_sub, seed_xor};
 use crate::ArrayLength;
-use crate::FssKey;
 
 use crate::{Aeskey, Block, S};
 
@@ -20,12 +20,12 @@ impl Eval {
     }
     pub fn eval<N: ArrayLength<Block>>(
         &self,
-        b: u8,
+        party: u8,
         key: &FssKey<N>,
         x: u128,
         sec_param: usize,
     ) -> u128 {
-        let mut t = match b {
+        let mut t = match party {
             0 => false,
             1 => true,
             _ => panic!("It is two party scheme. Party number can only be 1 or 2"),
@@ -61,7 +61,7 @@ impl Eval {
         }
 
         let share = grp_add(prg::convert::<N>(&mut s, n), (t as u128) * key.w, n);
-        if b != 0 {
+        if party != 0 {
             grp_sub(0u128, share, n)
         } else {
             share

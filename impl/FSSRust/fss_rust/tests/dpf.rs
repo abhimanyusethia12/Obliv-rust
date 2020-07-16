@@ -1,9 +1,6 @@
 use rand::Rng;
 
-use fss_rust::{
-    dpf::{eval, gen},
-    FssKey,
-};
+use fss_rust::dpf::{eval, gen, FssKey};
 
 use fss_rust::seed_size::U1;
 

@@ -1,17 +1,17 @@
-use crate::{ArrayLength, GenericArray};
+use crate::ArrayLength;
 use aesni::block_cipher::{BlockCipher, NewBlockCipher};
 use aesni::Aes128;
 
 use std::thread;
 
-use crate::{Aeskey, Block};
+use crate::{Aeskey, Block, S};
 
 // a PRG generating seed_len*2 + 2 bits random value from seed of length seed_len using AES128.
 pub fn prg<N: ArrayLength<Block>>(
     aes_keys: &[Aeskey; 3],
-    seed: &GenericArray<Block, N>,
+    seed: &S<N>,
     seed_len: usize,
-) -> (GenericArray<Block, N>, bool, GenericArray<Block, N>, bool) {
+) -> (S<N>, bool, S<N>, bool) {
     // This closure extracts first bit as bool from integer.
     let rnd_bool = |rnd_int: u8| match rnd_int & 1u8 {
         0u8 => false,
@@ -59,13 +59,13 @@ pub fn prg<N: ArrayLength<Block>>(
         }
     */
 
-    let mut seed_first_block = seed[0].clone();
-    ciphers[2].encrypt_block(&mut seed_first_block);
+    let mut seed_for_bool = seed[0].clone();
+    ciphers[2].encrypt_block(&mut seed_for_bool);
 
-    let t1 = rnd_bool(seed_first_block[0]);
-    let t2 = rnd_bool(seed_first_block[1]);
+    let t1 = rnd_bool(seed_for_bool[0]);
+    let t2 = rnd_bool(seed_for_bool[1]);
 
-    let mut blocks_arr: Vec<GenericArray<Block, N>>;
+    let mut blocks_arr: Vec<S<N>>;
 
     blocks_arr = handles
         .into_iter()
@@ -111,7 +111,7 @@ pub fn prg<N: ArrayLength<Block>>(
     (s1, t1, s2, t2)
 }
 
-pub fn convert<N: ArrayLength<Block>>(s: &mut GenericArray<Block, N>, n: u8) -> u128 {
+pub fn convert<N: ArrayLength<Block>>(s: &mut S<N>, n: u8) -> u128 {
     let mut rnd_num = 0u128;
     let mut x = 0u128;
     let mut count = 0u8;
@@ -138,6 +138,7 @@ pub fn convert<N: ArrayLength<Block>>(s: &mut GenericArray<Block, N>, n: u8) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::GenericArray;
 
     #[test]
     fn zero_key_and_zero_buffer() {

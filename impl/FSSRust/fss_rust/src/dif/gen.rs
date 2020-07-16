@@ -1,8 +1,10 @@
-use super::{prg, FssKey};
+use super::{prg::prg, FssKey, PrgOutput};
 use crate::utils::{
     gen_key, get_bit, get_random_block, get_random_bool, get_random_num, grp_add, grp_sub, seed_xor,
 };
 use crate::{ArrayLength, GenericArray};
+
+use std::mem;
 
 use crate::{Aeskey, Block, S};
 
@@ -10,8 +12,8 @@ use crate::{Aeskey, Block, S};
 pub struct Gen {
     aes_keys: [Aeskey; 5],
     numbit: u8,
-    pub a: u128,
-    pub g: u128,
+    a: u128,
+    g: u128,
 }
 
 impl Gen {
@@ -22,11 +24,7 @@ impl Gen {
         lambda: usize,
         key0: &mut FssKey<N>,
         key1: &mut FssKey<N>,
-    ) -> (
-        Vec<Vec<GenericArray<Block, N>>>,
-        [[bool; 2]; 2],
-        [[u128; 2]; 2],
-    ) {
+    ) -> (Vec<Vec<GenericArray<Block, N>>>, [[bool; 2]; 2]) {
         let _a_i = 1 - a_i;
 
         let mut s: Vec<Vec<S<N>>> = vec![
@@ -65,7 +63,7 @@ impl Gen {
         key1.init.4 = v[1][0];
         key1.init.5 = v[1][1];
 
-        (s, t, v)
+        (s, t)
     }
     pub fn new(numbit: u8, a: u128, output: u128) -> Gen {
         let aes_keys: [Aeskey; 5] = [gen_key(), gen_key(), gen_key(), gen_key(), gen_key()];
@@ -75,6 +73,10 @@ impl Gen {
             a,
             g: output,
         }
+    }
+
+    pub fn aes_keys(&self) -> &[Aeskey; 5] {
+        &self.aes_keys
     }
 
     pub fn gen<N: ArrayLength<Block>>(
@@ -92,7 +94,7 @@ impl Gen {
         let mut a_i = 0usize;
         let mut _a_i = 0usize;
 
-        let (mut s, mut t, mut v) = Self::initialise(a_i, self.g, n, lambda, key0, key1);
+        let (mut s, mut t) = Self::initialise(a_i, self.g, n, lambda, key0, key1);
 
         let mut _s = vec![
             vec![GenericArray::default(), GenericArray::default()],
@@ -108,7 +110,7 @@ impl Gen {
         let mut _ct = [[false; 2]; 2];
         let mut _cv = [[0u128; 2]; 2];
 
-        for i in 1..n {
+        for _i in 1..n {
             a_i = a_i_1;
             _a_i = _a_i_1;
             a_i_1 = get_bit(a, 0) as usize;
@@ -133,16 +135,43 @@ impl Gen {
             );
 
             _ct[0][a_i_1] = get_random_bool();
-            _ct[1][a_i_1] = 1 ^ _ct[0][a_i_1] ^ t[0][a_i_1] ^ t[1][a_i_1];
+            _ct[1][a_i_1] = true ^ _ct[0][a_i_1] ^ t[0][a_i_1] ^ t[1][a_i_1];
             _ct[0][_a_i_1] = get_random_bool();
             _ct[1][_a_i_1] = _ct[0][_a_i_1] ^ t[0][_a_i_1] ^ t[1][_a_i_1];
 
-            _cv[t[0][a_i]][a_i_1] = get_random_num(n);
-            _cv[t[1][a_i]][a_i_1] =
-                grp_sub(grp_add(_cv[0][a_i_1], _v[0][a_i_1], n), _v[1][a_i_1], n);
-            _cv[t[0][a_i]][a_i_1] = get_random_num(n);
-            _cv[t[1][a_i]][a_i_1] =
-                grp_sub(grp_add(_cv[0][a_i_1], _v[0][a_i_1], n), _v[1][a_i_1], n);
+            _cv[0][a_i_1] = get_random_num(n);
+            _cv[1][a_i_1] = grp_sub(grp_add(_cv[0][a_i_1], _v[0][a_i_1], n), _v[1][a_i_1], n);
+            _cv[0][_a_i_1] = get_random_num(n);
+            _cv[1][_a_i_1] = grp_sub(
+                grp_sub(grp_add(_cv[0][a_i_1], _v[0][a_i_1], n), _v[1][a_i_1], n),
+                self.g * a_i_1 as u128,
+                n,
+            );
+
+            let tau = [t[0][a_i] as usize, t[1][a_i] as usize];
+            for party in 0..2 {
+                for j in 0..2 {
+                    s[party][j] = seed_xor(&_s[party][j], &_cs[tau[party]][j]);
+                    t[party][j] = _t[party][j] ^ _ct[tau[party]][j];
+                }
+            }
+
+            key0.cw.push(PrgOutput(
+                mem::take(&mut _cs[0][0]),
+                mem::take(&mut _cs[0][1]),
+                _ct[0][0],
+                _ct[0][1],
+                _cv[0][0],
+                _cv[0][1],
+            ));
+            key1.cw.push(PrgOutput(
+                mem::take(&mut _cs[1][0]),
+                mem::take(&mut _cs[1][1]),
+                _ct[1][0],
+                _ct[1][1],
+                _cv[1][0],
+                _cv[1][1],
+            ));
         }
     }
 }

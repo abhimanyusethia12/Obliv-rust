@@ -1,11 +1,11 @@
-use crate::prg;
+use super::{prg, FssKey};
+
 use crate::utils::{gen_key, get_bit, get_random_block, grp_add, grp_sub, seed_xor};
-use crate::FssKey;
 use crate::{ArrayLength, GenericArray};
 
-use crate::{Aeskey, Block, S};
-
 use std::{mem, thread};
+
+use crate::{Aeskey, Block, S};
 
 // Struct used for creating the generator object.
 #[derive(Debug)]

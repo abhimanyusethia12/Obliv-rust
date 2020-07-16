@@ -1,9 +1,8 @@
 extern crate rand;
 
 use fss_rust::{
-    dpf::{eval, gen},
+    dpf::{eval, gen, FssKey},
     seed_size::U1,
-    FssKey,
 };
 
 fn main() {
