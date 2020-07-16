@@ -77,6 +77,20 @@ pub fn get_random_block<N: ArrayLength<Block>>(s: &mut S<N>, lambda: usize) {
     }
 }
 
+pub fn get_random_bool() -> bool {
+    set_random_bytes(1)[0] > 0
+}
+
+pub fn get_random_num(numbit: u8) -> u128 {
+    let rnd_bytes = set_random_bytes(numbit as usize);
+    let mut rnd_num = 0u128;
+    for x in rnd_bytes {
+        rnd_num <<= 8;
+        rnd_num += x as u128
+    }
+    rnd_num
+}
+
 pub fn seed_xor<N: ArrayLength<Block>>(operand1: &S<N>, operand2: &S<N>) -> S<N> {
     operand1
         .iter()

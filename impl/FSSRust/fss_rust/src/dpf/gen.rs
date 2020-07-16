@@ -29,7 +29,7 @@ impl Gen {
         }
     }
     // Main function that implements the dpf for input a and output b.
-    pub fn dpf<N: ArrayLength<Block> + 'static>(
+    pub fn gen<N: ArrayLength<Block> + 'static>(
         &self,
         sec_param: usize,
         key1: &mut FssKey<N>,

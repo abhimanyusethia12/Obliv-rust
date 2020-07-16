@@ -18,8 +18,8 @@ fn main() {
     let obj: gen::Gen = gen::Gen::new(num_bit, a, b);
     let mut key1 = FssKey::<U1>::new();
     let mut key2 = FssKey::<U1>::new();
-    // Invoking the dpf function on the Gen object.
-    gen::Gen::dpf(&obj, sec_param, &mut key1, &mut key2);
+    // Invoking the gen function on the Gen object.
+    gen::Gen::gen(&obj, sec_param, &mut key1, &mut key2);
 
     println!("FSS KEY 1\n{:?}\nFSS KEY 2\n{:?}", key1, key2);
 

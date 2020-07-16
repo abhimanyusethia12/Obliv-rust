@@ -4,11 +4,11 @@ use aesni::Aes128;
 
 use std::thread;
 
-use crate::Block;
+use crate::{Aeskey, Block};
 
 // a PRG generating seed_len*2 + 2 bits random value from seed of length seed_len using AES128.
 pub fn prg<N: ArrayLength<Block>>(
-    aes_keys: &[Block; 3],
+    aes_keys: &[Aeskey; 3],
     seed: &GenericArray<Block, N>,
     seed_len: usize,
 ) -> (GenericArray<Block, N>, bool, GenericArray<Block, N>, bool) {
