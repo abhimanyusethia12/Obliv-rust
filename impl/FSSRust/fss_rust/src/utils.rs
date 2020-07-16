@@ -21,7 +21,7 @@ pub fn grp_add(x: u128, y: u128, n: u8) -> u128 {
 
 pub fn grp_sub(x: u128, y: u128, n: u8) -> u128 {
     if n < 128 {
-        return (x + (1 << n) - y) % (1 << n);
+        return ((x + (1 << n)) - y) % (1 << n);
     }
     let max = u128::MAX;
     if y <= x {
@@ -58,9 +58,10 @@ fn set_random_bytes(lambda: usize) -> Vec<u8> {
     r.fill_bytes(&mut rand_bytes);
 
     if extra_bits > 0 {
-        let mask: u8 = ((1 << (extra_bits - 1)) - 1) + 1 << (extra_bits - 1);
+        let mask: u8 = ((1 << (extra_bits - 1)) - 1) + (1 << (extra_bits - 1));
         rand_bytes[x - 1] &= mask;
     }
+
     return rand_bytes;
 }
 
@@ -83,12 +84,13 @@ pub fn get_random_bool() -> bool {
 
 pub fn get_random_num(numbit: u8) -> u128 {
     let rnd_bytes = set_random_bytes(numbit as usize);
-    let mut rnd_num = 0u128;
-    for x in rnd_bytes {
-        rnd_num <<= 8;
-        rnd_num += x as u128
+    let mut y = 0u128;
+
+    for x in rnd_bytes.into_iter().rev() {
+        y <<= 8;
+        y += x as u128;
     }
-    rnd_num
+    y
 }
 
 pub fn seed_xor<N: ArrayLength<Block>>(operand1: &S<N>, operand2: &S<N>) -> S<N> {
@@ -97,4 +99,14 @@ pub fn seed_xor<N: ArrayLength<Block>>(operand1: &S<N>, operand2: &S<N>) -> S<N>
         .zip(operand2.iter())
         .map(|(x, y)| x.iter().zip(y.iter()).map(|(a, b)| a ^ b).collect())
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_random_num() {
+        println!("random num: {}", get_random_num(5));
+    }
 }

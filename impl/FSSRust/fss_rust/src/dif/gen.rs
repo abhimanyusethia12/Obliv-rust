@@ -34,7 +34,7 @@ impl Gen {
         get_random_block(&mut s[0][a_i], lambda);
         get_random_block(&mut s[1][a_i], lambda);
         get_random_block(&mut s[0][_a_i], lambda);
-        s[1][_a_i] = s[0][a_i].clone();
+        s[1][_a_i] = s[0][_a_i].clone();
 
         key0.init.0 = s[0][0].clone();
         key0.init.1 = s[0][1].clone();
@@ -45,7 +45,7 @@ impl Gen {
         t[0][a_i] = get_random_bool();
         t[1][a_i] = !t[0][a_i];
         t[0][_a_i] = get_random_bool();
-        t[1][_a_i] = !t[1][a_i];
+        t[1][_a_i] = t[0][_a_i];
 
         key0.init.2 = t[0][0];
         key0.init.3 = t[0][1];
@@ -91,10 +91,10 @@ impl Gen {
 
         let mut a_i_1 = get_bit(a, 0) as usize;
         let mut _a_i_1 = 1 - a_i_1;
-        let mut a_i = 0usize;
-        let mut _a_i = 0usize;
+        let mut a_i;
+        let mut _a_i;
 
-        let (mut s, mut t) = Self::initialise(a_i, self.g, n, lambda, key0, key1);
+        let (mut s, mut t) = Self::initialise(a_i_1, self.g, n, lambda, key0, key1);
 
         let mut _s = vec![
             vec![GenericArray::default(), GenericArray::default()],
