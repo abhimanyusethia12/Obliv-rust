@@ -41,6 +41,7 @@ impl Eval<'_> {
             false => (&key.init.0, key.init.2, key.init.4),
             true => (&key.init.1, key.init.3, key.init.5),
         };
+        println!("v: {}",v);
         let mut _s: S<N>;
 
         for (i, cw) in key
@@ -50,8 +51,13 @@ impl Eval<'_> {
             .zip(key.cw.iter().skip(1).step_by(2))
             .enumerate()
         {
+            println!("\nIteration: {}\n", i+1);
+            println!("cv00: {:?} cv01: {:?}", (cw.0).4, (cw.0).5);
+            println!("cv10: {:?} cv11: {:?}", (cw.1).4, (cw.1).5);
             let PrgOutput(_s0, _s1, _t0, _t1, _v0, _v1) = prg(self.aes_keys, &s, lambda, n);
+            println!("_v0: {}, _v1: {}", _v0, _v1);
             let x_i = get_bit(x, i as u8 + 1);
+            println!("x_i: {}", x_i);
 
             match t {
                 false => match x_i {

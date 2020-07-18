@@ -56,7 +56,7 @@ impl Gen {
         v[0][a_i] = get_random_num(numbit);
         v[1][a_i] = grp_sub(0, v[0][a_i], numbit);
         v[0][_a_i] = get_random_num(numbit);
-        v[1][_a_i] = grp_add(v[0][_a_i], g * a_i as u128, numbit);
+        v[1][_a_i] = grp_sub(v[0][_a_i], g * a_i as u128, numbit);
 
         key0.init.4 = v[0][0];
         key0.init.5 = v[0][1];
@@ -110,10 +110,10 @@ impl Gen {
         let mut _ct = [[false; 2]; 2];
         let mut _cv = [[0u128; 2]; 2];
 
-        for _i in 1..n {
+        for i in 1..n {
             a_i = a_i_1;
             _a_i = _a_i_1;
-            a_i_1 = get_bit(a, 0) as usize;
+            a_i_1 = get_bit(a, i) as usize;
             _a_i_1 = 1 - a_i_1;
 
             for party in 0..2 {
@@ -156,22 +156,27 @@ impl Gen {
                 }
             }
 
-            key0.cw.push(PrgOutput(
+            let cw0 = PrgOutput(
                 mem::take(&mut _cs[0][0]),
                 mem::take(&mut _cs[0][1]),
                 _ct[0][0],
                 _ct[0][1],
                 _cv[0][0],
                 _cv[0][1],
-            ));
-            key1.cw.push(PrgOutput(
+            );
+
+            let cw1 = PrgOutput(
                 mem::take(&mut _cs[1][0]),
                 mem::take(&mut _cs[1][1]),
                 _ct[1][0],
                 _ct[1][1],
                 _cv[1][0],
                 _cv[1][1],
-            ));
+            );
+            key0.cw.push(cw0.clone());
+            key0.cw.push(cw1.clone());
+            key1.cw.push(cw0.clone());
+            key1.cw.push(cw1.clone());
         }
     }
 }

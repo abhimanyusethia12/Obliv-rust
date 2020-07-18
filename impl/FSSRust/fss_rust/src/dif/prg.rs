@@ -6,7 +6,7 @@ use std::thread;
 
 use crate::{Aeskey, Block, S};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PrgOutput<N: ArrayLength<Block>>(
     pub S<N>,
     pub S<N>,

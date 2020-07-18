@@ -3,9 +3,9 @@ use fss_rust::dif::{eval::Eval, gen::Gen, FssKey};
 use fss_rust::seed_size::U1;
 
 fn main() {
-    let a = 15;
+    let a = 1;
     let g = 1;
-    let numbit = 4;
+    let numbit = 2;
     let sec_param = 128;
     let x = 0;
 
@@ -20,8 +20,10 @@ fn main() {
     );
 
     let eval_obj = Eval::new(numbit, gen_obj.aes_keys());
+    println!("\n\nexecuting eval for party 0:\n");
     let share1 = eval_obj.eval(0, &key0, x, sec_param);
-    let share2 = eval_obj.eval(1, &key0, x, sec_param);
+    println!("\n\nexecuting eval for party 1:\n");
+    let share2 = eval_obj.eval(1, &key1, x, sec_param);
 
     println!("\n\nshare 1: {}\nshare 2: {}", share1, share2);
 }

@@ -3,7 +3,7 @@ use crate::ArrayLength;
 
 use crate::Block;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FssKey<N: ArrayLength<Block>> {
     pub init: PrgOutput<N>,
     pub cw: Vec<PrgOutput<N>>,
